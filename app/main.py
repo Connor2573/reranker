@@ -56,8 +56,20 @@ def _normalise_documents(documents: Sequence[Any]) -> List[Dict[str, Any]]:
 
 def _score_documents(query: str, docs: List[Dict[str, Any]], batch_size: int, model_bundle):
     scores: List[float] = []
-    tokenizer = model_bundle.tokenizer
     model = model_bundle.model
+
+    # jina-reranker-v3 uses custom .rerank() method
+    if model_bundle.is_jina_v3:
+        doc_texts = [item["text"] for item in docs]
+        results = model.rerank(query, doc_texts)
+        # results is a list of dicts with 'relevance_score' and 'index'
+        # Sort by original index to maintain order
+        score_map = {r["index"]: r["relevance_score"] for r in results}
+        scores = [score_map[i] for i in range(len(docs))]
+        return scores
+
+    # Standard cross-encoder path
+    tokenizer = model_bundle.tokenizer
     device = model_bundle.device
 
     for batch in _chunk(docs, batch_size):

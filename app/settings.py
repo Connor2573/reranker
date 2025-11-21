@@ -11,6 +11,7 @@ _DEFAULT_MODELS = [
     "BAAI/bge-reranker-v2-m3",
     "BAAI/bge-reranker-v2-base",
     "jinaai/jina-reranker-v2-base",
+    "jinaai/jina-reranker-v3",
     "cross-encoder/ms-marco-MiniLM-L-12-v2",
 ]
 
@@ -28,7 +29,8 @@ class Settings(BaseSettings):
     batch_size: int = Field(default=32, description="How many query-document pairs to score per forward pass.")
     torch_dtype: str | None = Field(default=None, description="Override dtype (float16, bfloat16, float32). Auto-selects if unset.")
     device: str | None = Field(default=None, description="Force computation device (cuda, cpu). Auto-selects if unset.")
-    warm_models: List[str] = Field(default_factory=list, description="Models to pre-load on startup.")
+    warm_models: List[str] = Field(default_factory=lambda: ["jinaai/jina-reranker-v3"], description="Models to pre-load on startup.")
+    single_model_mode: bool = Field(default=True, description="Unload previous models before loading a new one to save VRAM.")
     enable_metrics: bool = Field(default=True, description="Expose latency metrics in responses.")
 
     @field_validator("allowed_models", mode="before")
